@@ -9,7 +9,7 @@ import (
 )
 
 func ShellCmd(script string, args ...string) (cmd *exec.Cmd, path string, err error) {
-	file, err := ioutil.TempFile(".", ".shell")
+	file, err := ioutil.TempFile(".", "shell*.sh")
 	if err != nil {
 		return nil, "", err
 	}
