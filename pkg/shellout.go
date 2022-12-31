@@ -8,7 +8,11 @@ import (
 	"fmt"
 )
 
-func ShellCmd(script string, args ...string) (cmd *exec.Cmd, path string, err error) {
+func Cmd(cmdStart []string, script string, args ...string) (cmd *exec.Cmd, path string, err error) {
+	if len(cmdStart) < 1 {
+		return nil, "", fmt.Errorf("GenericCmd: cmdStart empty")
+	}
+
 	file, err := ioutil.TempFile(".", "shell*.sh")
 	if err != nil {
 		return nil, "", err
@@ -16,14 +20,16 @@ func ShellCmd(script string, args ...string) (cmd *exec.Cmd, path string, err er
 	defer file.Close()
 	fmt.Fprint(file, script)
 	path = file.Name()
-	cargs := append([]string{path}, args...)
+	cargs := append([]string{}, cmdStart[1:]...)
+	cargs = append(cargs, path)
+	cargs = append(cargs, args...)
 
-	cmd = exec.Command("bash", cargs...)
+	cmd = exec.Command(cmdStart[0], cargs...)
 	return cmd, path, err
 }
 
-func ShellOut(script string, args ...string) error {
-	cmd, path, err := ShellCmd(script, args...)
+func Out(cmdStart []string, script string, args ...string) error {
+	cmd, path, err := Cmd(cmdStart, script, args...)
 	defer os.Remove(path)
 	if err != nil {
 		return err
@@ -40,8 +46,8 @@ func ShellOut(script string, args ...string) error {
 	return nil
 }
 
-func ShellOutPiped(script string, stdin io.Reader, stdout io.Writer, stderr io.Writer, args ...string) error {
-	cmd, path, err := ShellCmd(script, args...)
+func Piped(cmdStart []string, script string, stdin io.Reader, stdout io.Writer, stderr io.Writer, args ...string) error {
+	cmd, path, err := Cmd(cmdStart, script, args...)
 	defer os.Remove(path)
 	if err != nil {
 		return err
@@ -62,4 +68,14 @@ func ShellOutPiped(script string, stdin io.Reader, stdout io.Writer, stderr io.W
 	}
 
 	return nil
+}
+
+func ShellCmd(script string, args ...string) (cmd *exec.Cmd, path string, err error) {
+	return Cmd([]string{"bash"}, script, args...)
+}
+func ShellOut(script string, args ...string) error {
+	return Out([]string{"bash"}, script, args...)
+}
+func ShellPiped(script string, stdin io.Reader, stdout io.Writer, stderr io.Writer, args ...string) error {
+	return Piped([]string{"bash"}, script, stdin, stdout, stderr, args...)
 }

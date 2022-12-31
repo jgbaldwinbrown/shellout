@@ -9,7 +9,7 @@ import (
 
 func main() {
 	var b strings.Builder
-	err := shellout.ShellOutPiped("ls -ltr", os.Stdin, &b, os.Stderr)
+	err := shellout.ShellPiped("ls -ltr", os.Stdin, &b, os.Stderr)
 	if err != nil {
 		panic(err)
 	}
@@ -17,7 +17,7 @@ func main() {
 
 	b.Reset()
 	r := strings.NewReader("5\n10\n15\n20")
-	err = shellout.ShellOutPiped(`awk '{print $1+3}'`, r, &b, os.Stderr)
+	err = shellout.ShellPiped(`awk '{print $1+3}'`, r, &b, os.Stderr)
 	if err != nil {
 		panic(err)
 	}
